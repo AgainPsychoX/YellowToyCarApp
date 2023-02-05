@@ -1,16 +1,23 @@
-# yellow_toy_car
 
-A new Flutter project.
+# Yellow Toy Car App
 
-## Getting Started
+The app, made using Flutter, is dedicated to controlling simple toy car based on ESP32-Cam module via WiFi.
 
-This project is a starting point for a Flutter application.
+See [YellowToyCar](https://github.com/AgainPsychoX/YellowToyCar) repository for the car project.
 
-A few resources to get you started if this is your first Flutter project:
 
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+
+
+## To-do
+
+* Make drawer navigation nicer https://github.com/flutter/flutter/issues/26954
+* Listen to connectivity changes https://stackoverflow.com/questions/25678216/android-internet-connectivity-change-listener 
+* Work to be done on [`network_info_plus` package](https://pub.dev/packages/network_info_plus)
+	+ Fix bug: `getWifiName` returns last connected name if disconnected. Make it return empty string if disconnected and/or add WiFi status to API.
+	+ Add WiFi RSSI
+	+ Allow observe (stream?) on updates
+* Make basic controls arrow buttons rounded. Make lerping/adding border styles, like [`BeveledRectangleBorder`](https://github.com/flutter/flutter/blob/7048ed95a5ad3e43d697e0c397464193991fc230/packages/flutter/lib/src/painting/beveled_rectangle_border.dart#L51) possible.
+* ...
+
+

@@ -4,7 +4,9 @@ import 'package:flutter/material.dart';
 import 'package:logging/logging.dart';
 import 'package:provider/provider.dart';
 import 'package:yellow_toy_car/api.dart';
-import 'pages/home.dart';
+import 'package:yellow_toy_car/pages/about.dart';
+import 'package:yellow_toy_car/pages/connection.dart';
+import 'package:yellow_toy_car/pages/controls/basic.dart';
 
 void main() {
   Logger.root.level = kDebugMode ? Level.ALL : Level.INFO;
@@ -21,6 +23,12 @@ void main() {
   runApp(const MyApp());
 }
 
+final routes = <String, Widget Function(BuildContext context)>{
+  '/about': (context) => const AboutPage(),
+  '/connection': (context) => const ConnectionPage(),
+  '/controls/basic': (context) => const BasicControlsPage(),
+};
+
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
@@ -29,7 +37,7 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MultiProvider(
       providers: [
-        ChangeNotifierProvider<CarController?>(
+        ChangeNotifierProvider<CarController>(
             create: (context) => CarController()),
       ],
       child: MaterialApp(
@@ -38,10 +46,8 @@ class MyApp extends StatelessWidget {
           primarySwatch: Colors.amber,
           primaryColor: const Color.fromARGB(255, 255, 192, 16),
         ),
-        initialRoute: '/home',
-        routes: {
-          '/home': (context) => const HomePage(),
-        },
+        initialRoute: '/connection',
+        routes: routes,
       ),
     );
   }

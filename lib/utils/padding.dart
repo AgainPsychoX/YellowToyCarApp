@@ -1,6 +1,6 @@
 import 'package:flutter/widgets.dart';
 
-extension on List<Widget> {
+extension PaddingInserters on List<Widget> {
   List<Widget> insertBetweenAll(Widget widget) {
     return List<Widget>.generate(
       length * 2 - 1,

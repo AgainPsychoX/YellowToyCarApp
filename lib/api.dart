@@ -1,4 +1,4 @@
-import 'dart:convert';
+import 'dart:io';
 import 'package:logging/logging.dart';
 import 'package:flutter/foundation.dart';
 import 'package:dio/dio.dart';
@@ -35,27 +35,55 @@ class CarStatus {
 }
 
 class CarConnection {
-  final String address;
+  final InternetAddress address;
   bool isConnected = false;
 
   /// Response time (in milliseconds) for last HTTP request
   int lastPing = -1;
 
-  final Dio _client;
+  Uri get cameraStreamUri {
+    return Uri(scheme: 'http', host: address.host, port: 81, path: '/stream');
+  }
 
-  CarConnection(this.address)
-      : _client = Dio(BaseOptions(connectTimeout: 3333));
+  final Dio _dio;
+  final RawDatagramSocket _udp;
+
+  CarConnection._(this.address, this._dio, this._udp);
+
+  static Future<CarConnection> prepare(InternetAddress address) async {
+    final dio = Dio(BaseOptions(connectTimeout: 3333));
+
+    final udp = await RawDatagramSocket.bind(InternetAddress.anyIPv4, 0);
+    // TODO: implement some ping mechanism in the UDP server and use here to test UDP connection
+
+    return CarConnection._(address, dio, udp);
+  }
 
   /// Should be called to make sure the connection is closed and resources are freed
   void dispose() {
-    _client.close();
+    _dio.close();
+    _udp.close();
   }
 
   Future<CarStatus> getStatus() async {
     final stopwatch = Stopwatch()..start();
-    final response = await _client.get(Uri.http(address, '/status').toString());
+    final response = await _dio.getUri(Uri.http(address.host, '/status'));
     lastPing = stopwatch.elapsedMilliseconds;
     return CarStatus.fromJSON(response.data);
+  }
+
+  void controlUsingUDP(CarControlData data) {
+    _udp.send(data.toLongPacket().buffer.asInt8List(), address, 83);
+  }
+
+  void controlUsingHTTP(CarControlData data) {
+    _dio
+        .postUri(
+          Uri.http(address.host, '/config'),
+          data: data.toJSON(),
+          options: Options(receiveTimeout: 1),
+        )
+        .ignore();
   }
 }
 
@@ -67,18 +95,27 @@ class CarController extends ChangeNotifier {
   }
 
   Future<void> connect(String address) async {
+    var resolvedAddress = InternetAddress.tryParse(address);
+    try {
+      resolvedAddress ??= (await InternetAddress.lookup(address)).first;
+      log.finer("Resolved as '${resolvedAddress.address}'");
+    } catch (e, s) {
+      log.warning("Failed to resolve address '$address'", e, s);
+      rethrow;
+    }
+
     if (connection != null) {
       await disconnect();
       notifyListeners();
     }
     try {
-      log.finer("Connecting to '$address'...");
-      connection = CarConnection(address);
+      log.finer("Connecting to $resolvedAddress...");
+      connection = await CarConnection.prepare(resolvedAddress);
       await connection!.getStatus();
-      log.info("Connected to '$address'");
+      log.info("Connected to $resolvedAddress");
       notifyListeners();
     } catch (e, s) {
-      log.warning("Failed to connect to '$address'", e, s);
+      log.warning("Failed to connect to $resolvedAddress", e, s);
       connection?.dispose();
       connection = null;
       rethrow;
@@ -93,4 +130,58 @@ class CarController extends ChangeNotifier {
       notifyListeners();
     }
   }
+}
+
+class CarControlData {
+  double leftMotor;
+  double rightMotor;
+  bool mainLight;
+  bool otherLight;
+
+  CarControlData(
+      this.leftMotor, this.rightMotor, this.mainLight, this.otherLight);
+
+  ByteData toShortPacket() {
+    final bytes = ByteData(12);
+
+    int flags = 0;
+    if (mainLight) flags |= 1 << 0;
+    if (otherLight) flags |= 1 << 1;
+    if (leftMotor < 0) flags |= 1 << 6;
+    if (rightMotor < 0) flags |= 1 << 7;
+
+    bytes.setUint8(0, 1); // Packet type: 1 for long control packet.
+    bytes.setUint8(1, flags);
+    bytes.setUint8(2, (leftMotor * 255).round());
+    bytes.setUint8(3, (rightMotor * 255).round());
+
+    return bytes;
+  }
+
+  ByteData toLongPacket() {
+    final bytes = ByteData(12);
+
+    int flags = 0;
+    if (mainLight) flags |= 1 << 0;
+    if (otherLight) flags |= 1 << 1;
+    if (leftMotor < 0) flags |= 1 << 6;
+    if (rightMotor < 0) flags |= 1 << 7;
+
+    bytes.setUint8(0, 2); // Packet type: 2 for long control packet.
+    bytes.setUint8(1, flags);
+    bytes.setUint16(2, 0); // Not used currently, need to be 0.
+    bytes.setFloat32(4, leftMotor * 100);
+    bytes.setFloat32(8, rightMotor * 100);
+
+    return bytes;
+  }
+
+  Map<String, dynamic> toJSON() => {
+        'control': {
+          'left': leftMotor,
+          'right': rightMotor,
+          'mainLight': mainLight,
+          'otherLight': otherLight,
+        }
+      };
 }
