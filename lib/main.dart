@@ -6,6 +6,7 @@ import 'package:provider/provider.dart';
 import 'package:yellow_toy_car/api.dart';
 import 'package:yellow_toy_car/pages/about.dart';
 import 'package:yellow_toy_car/pages/connection.dart';
+import 'package:yellow_toy_car/pages/controls/analog.dart';
 import 'package:yellow_toy_car/pages/controls/basic.dart';
 
 void main() {
@@ -27,6 +28,7 @@ final routes = <String, Widget Function(BuildContext context)>{
   '/about': (context) => const AboutPage(),
   '/connection': (context) => const ConnectionPage(),
   '/controls/basic': (context) => const BasicControlsPage(),
+  '/controls/analog': (context) => const AnalogControlsPage(),
 };
 
 class MyApp extends StatelessWidget {

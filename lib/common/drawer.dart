@@ -34,6 +34,18 @@ class MyDrawer extends StatelessWidget {
             },
           ),
           ListTile(
+            enabled: Provider.of<CarController>(context).isConnected,
+            leading: const Icon(Icons.sports_esports_rounded),
+            title: const Text('Analog controls'),
+            onTap: () async {
+              Navigator.pop(context);
+              await Future.delayed(const Duration(milliseconds: 200));
+              if (context.mounted) {
+                Navigator.pushReplacementNamed(context, '/controls/analog');
+              }
+            },
+          ),
+          ListTile(
             leading: const Icon(Icons.info_outline_rounded),
             title: const Text('About'),
             onTap: () async {
