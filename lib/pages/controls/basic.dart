@@ -58,9 +58,10 @@ class _BasicControlsState extends State<BasicControls> {
       Positioned(
         top: step / 2,
         left: step / 2,
-        child: GestureDetector(
-          onTapDown: (_) => _drivingModel.rotate(-0.5),
-          onTapUp: (_) => _drivingModel.brake(),
+        child: Listener(
+          onPointerDown: (_) => _drivingModel.rotate(-0.5),
+          onPointerUp: (_) => _drivingModel.brake(),
+          onPointerCancel: (_) => _drivingModel.brake(),
           child: ElevatedButton(
             onPressed: () {},
             style: cornerButtonStyle,
@@ -72,9 +73,10 @@ class _BasicControlsState extends State<BasicControls> {
       Positioned(
         top: step / 2,
         right: step / 2,
-        child: GestureDetector(
-          onTapDown: (_) => _drivingModel.rotate(0.5),
-          onTapUp: (_) => _drivingModel.brake(),
+        child: Listener(
+          onPointerDown: (_) => _drivingModel.rotate(0.5),
+          onPointerUp: (_) => _drivingModel.brake(),
+          onPointerCancel: (_) => _drivingModel.brake(),
           child: ElevatedButton(
             onPressed: () {},
             style: cornerButtonStyle,
@@ -86,9 +88,10 @@ class _BasicControlsState extends State<BasicControls> {
       Positioned(
         bottom: step / 2,
         left: step / 2,
-        child: GestureDetector(
-          onTapDown: (_) => _drivingModel.stop(),
-          onTapUp: (_) => _drivingModel.stop(),
+        child: Listener(
+          onPointerDown: (_) => _drivingModel.stop(),
+          onPointerUp: (_) => _drivingModel.stop(),
+          onPointerCancel: (_) => _drivingModel.stop(),
           child: ElevatedButton(
             onPressed: () => {},
             style: cornerButtonStyle,

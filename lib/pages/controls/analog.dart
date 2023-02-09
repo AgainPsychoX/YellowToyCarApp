@@ -58,9 +58,10 @@ class _AnalogControlsState extends State<AnalogControls> {
       Positioned(
         top: 0,
         left: 0,
-        child: GestureDetector(
-          onTapDown: (_) => _drivingModel.rotate(-0.5),
-          onTapUp: (_) => _drivingModel.brake(),
+        child: Listener(
+          onPointerDown: (_) => _drivingModel.rotate(-0.5),
+          onPointerUp: (_) => _drivingModel.brake(),
+          onPointerCancel: (_) => _drivingModel.brake(),
           child: ElevatedButton(
             onPressed: () {},
             style: cornerButtonStyle,
@@ -72,9 +73,10 @@ class _AnalogControlsState extends State<AnalogControls> {
       Positioned(
         top: 0,
         right: 0,
-        child: GestureDetector(
-          onTapDown: (_) => _drivingModel.rotate(0.5),
-          onTapUp: (_) => _drivingModel.brake(),
+        child: Listener(
+          onPointerDown: (_) => _drivingModel.rotate(0.5),
+          onPointerUp: (_) => _drivingModel.brake(),
+          onPointerCancel: (_) => _drivingModel.brake(),
           child: ElevatedButton(
             onPressed: () {},
             style: cornerButtonStyle,
@@ -86,9 +88,10 @@ class _AnalogControlsState extends State<AnalogControls> {
       Positioned(
         bottom: 0,
         left: 0,
-        child: GestureDetector(
-          onTapDown: (_) => _drivingModel.stop(),
-          onTapUp: (_) => _drivingModel.stop(),
+        child: Listener(
+          onPointerDown: (_) => _drivingModel.stop(),
+          onPointerUp: (_) => _drivingModel.stop(),
+          onPointerCancel: (_) => _drivingModel.stop(),
           child: ElevatedButton(
             onPressed: () => {},
             style: cornerButtonStyle,
