@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:yellow_toy_car/api.dart';
 import 'package:yellow_toy_car/common/car_camera.dart';
@@ -29,6 +30,12 @@ class _BasicControlsState extends State<BasicControls> {
     super.initState();
     _drivingModel.options = _options;
     _drivingModel.bind(widget.connection);
+
+    // Lock orientation for now, as landscape is not implemented
+    SystemChrome.setPreferredOrientations([
+      DeviceOrientation.portraitUp,
+      DeviceOrientation.portraitDown,
+    ]);
   }
 
   @override
