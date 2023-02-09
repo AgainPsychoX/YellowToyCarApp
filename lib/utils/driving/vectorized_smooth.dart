@@ -106,7 +106,7 @@ class SmoothedVectorizedDrivingModel extends VectorizedDrivingModel {
   @override
   void throttleIdle() {
     isRaw = false;
-    speed = 0;
+    targetSpeed = 0;
   }
 
   // TODO: smoothing for rotation

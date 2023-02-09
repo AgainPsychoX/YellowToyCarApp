@@ -29,14 +29,11 @@ class GamepadCross extends StatelessWidget {
 
   Widget _arrow(
       BuildContext context, double step, GamepadCrossDirection direction) {
-    return GestureDetector(
-      onTapDown: onTapDown == null ? null : (_) => onTapDown!(direction),
-      onTapUp: onTapUp == null ? null : (_) => onTapUp!(direction),
-
-      // TODO: fix onTapUp not working; onTapCancel used as workaround
-      onTapCancel: onTapUp == null ? null : () => onTapUp!(direction),
-      behavior: HitTestBehavior.translucent,
-
+    return Listener(
+      onPointerDown: onTapDown == null ? null : (_) => onTapDown!(direction),
+      onPointerUp: onTapUp == null ? null : (_) => onTapUp!(direction),
+      onPointerCancel: onTapUp == null ? null : (_) => onTapUp!(direction),
+      behavior: HitTestBehavior.opaque,
       child: SizedBox(
         height: 5 * step,
         width: 3 * step,
@@ -82,21 +79,21 @@ class GamepadCross extends StatelessWidget {
                 left: 6 * step,
                 child: RotatedBox(
                     quarterTurns: 1,
-                    child: _arrow(context, step, GamepadCrossDirection.left))),
+                    child: _arrow(context, step, GamepadCrossDirection.right))),
             // Bottom
             Positioned(
                 top: 6 * step,
                 left: 4 * step,
                 child: RotatedBox(
                     quarterTurns: 2,
-                    child: _arrow(context, step, GamepadCrossDirection.right))),
+                    child: _arrow(context, step, GamepadCrossDirection.down))),
             // Left
             Positioned(
                 top: 4 * step,
                 left: 0,
                 child: RotatedBox(
                     quarterTurns: 3,
-                    child: _arrow(context, step, GamepadCrossDirection.down))),
+                    child: _arrow(context, step, GamepadCrossDirection.left))),
             // Custom
             if (insideBuilder != null) ...insideBuilder!(context, size),
           ]),

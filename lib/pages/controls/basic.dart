@@ -16,12 +16,18 @@ class BasicControls extends StatefulWidget {
 }
 
 class _BasicControlsState extends State<BasicControls> {
-  final SmoothedVectorizedDrivingModel _drivingModel =
-      SmoothedVectorizedDrivingModel();
+  final _options = const SmoothedDrivingModelOptions(
+    speedResponse: 1.0,
+    speedDecay: 1.0,
+    directionResponse: 1.0,
+    directionDecay: 2.0,
+  );
+  final _drivingModel = SmoothedVectorizedDrivingModel();
 
   @override
   void initState() {
     super.initState();
+    _drivingModel.options = _options;
     _drivingModel.bind(widget.connection);
   }
 
@@ -46,7 +52,7 @@ class _BasicControlsState extends State<BasicControls> {
         top: step / 2,
         left: step / 2,
         child: GestureDetector(
-          onTapDown: (_) => _drivingModel.rotate(-1.0),
+          onTapDown: (_) => _drivingModel.rotate(-0.5),
           onTapUp: (_) => _drivingModel.brake(),
           child: ElevatedButton(
             onPressed: () {},
@@ -60,7 +66,7 @@ class _BasicControlsState extends State<BasicControls> {
         top: step / 2,
         right: step / 2,
         child: GestureDetector(
-          onTapDown: (_) => _drivingModel.rotate(1.0),
+          onTapDown: (_) => _drivingModel.rotate(0.5),
           onTapUp: (_) => _drivingModel.brake(),
           child: ElevatedButton(
             onPressed: () {},

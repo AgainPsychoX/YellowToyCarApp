@@ -80,8 +80,8 @@ class CarConnection {
   }
 
   void controlUsingUDP(CarControlData data) {
-    // debugPrint(sprintf('UDP: F:%02X T:0ms L:%.2f R:%.2f',
-    //     [data.flags, data.leftMotor * 100, data.rightMotor * 100]));
+    debugPrint(sprintf('UDP: F:%02X T:0ms L:%.2f R:%.2f',
+        [data.flags, data.leftMotor * 100, data.rightMotor * 100]));
     _udp.send(data.toLongPacket().buffer.asInt8List(), address, 83);
   }
 
