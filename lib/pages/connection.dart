@@ -320,7 +320,6 @@ class _ConnectionPageState extends State<ConnectionPage>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      key: const ValueKey('mainScaffold'),
       drawer: const MyDrawer(),
       appBar: AppBar(
         title: const Text('Connection'),

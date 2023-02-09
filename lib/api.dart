@@ -2,6 +2,7 @@ import 'dart:io';
 import 'package:logging/logging.dart';
 import 'package:flutter/foundation.dart';
 import 'package:dio/dio.dart';
+import 'package:sprintf/sprintf.dart';
 
 final log = Logger('api');
 
@@ -67,23 +68,32 @@ class CarConnection {
 
   Future<CarStatus> getStatus() async {
     final stopwatch = Stopwatch()..start();
-    final response = await _dio.getUri(Uri.http(address.host, '/status'));
-    lastPing = stopwatch.elapsedMilliseconds;
-    return CarStatus.fromJSON(response.data);
+    try {
+      final response = await _dio.getUri(Uri.http(address.host, '/status'));
+      lastPing = stopwatch.elapsedMilliseconds;
+      isConnected = true;
+      return CarStatus.fromJSON(response.data);
+    } catch (_) {
+      isConnected = false;
+      rethrow;
+    }
   }
 
   void controlUsingUDP(CarControlData data) {
+    // debugPrint(sprintf('UDP: F:%02X T:0ms L:%.2f R:%.2f',
+    //     [data.flags, data.leftMotor * 100, data.rightMotor * 100]));
     _udp.send(data.toLongPacket().buffer.asInt8List(), address, 83);
   }
 
   void controlUsingHTTP(CarControlData data) {
-    _dio
-        .postUri(
-          Uri.http(address.host, '/config'),
-          data: data.toJSON(),
-          options: Options(receiveTimeout: 1),
-        )
-        .ignore();
+    // TODO: actually code control in HTTP server of the car
+    // _dio
+    //     .postUri(
+    //       Uri.http(address.host, '/config'),
+    //       data: data.toJSON(),
+    //       options: Options(receiveTimeout: 1),
+    //     )
+    //     .ignore();
   }
 }
 
@@ -97,8 +107,10 @@ class CarController extends ChangeNotifier {
   Future<void> connect(String address) async {
     var resolvedAddress = InternetAddress.tryParse(address);
     try {
-      resolvedAddress ??= (await InternetAddress.lookup(address)).first;
-      log.finer("Resolved as '${resolvedAddress.address}'");
+      if (resolvedAddress == null) {
+        log.finer("Resolving '$address'...");
+        resolvedAddress = (await InternetAddress.lookup(address)).first;
+      }
     } catch (e, s) {
       log.warning("Failed to resolve address '$address'", e, s);
       rethrow;
@@ -132,6 +144,9 @@ class CarController extends ChangeNotifier {
   }
 }
 
+/// Set of data used to control the car.
+///
+/// Motor values range from 0.0 to 1.0 (full stop to full speed).
 class CarControlData {
   double leftMotor;
   double rightMotor;
@@ -141,14 +156,17 @@ class CarControlData {
   CarControlData(
       this.leftMotor, this.rightMotor, this.mainLight, this.otherLight);
 
-  ByteData toShortPacket() {
-    final bytes = ByteData(12);
-
+  int get flags {
     int flags = 0;
     if (mainLight) flags |= 1 << 0;
     if (otherLight) flags |= 1 << 1;
     if (leftMotor < 0) flags |= 1 << 6;
     if (rightMotor < 0) flags |= 1 << 7;
+    return flags;
+  }
+
+  ByteData toShortPacket() {
+    final bytes = ByteData(12);
 
     bytes.setUint8(0, 1); // Packet type: 1 for long control packet.
     bytes.setUint8(1, flags);
@@ -160,12 +178,6 @@ class CarControlData {
 
   ByteData toLongPacket() {
     final bytes = ByteData(12);
-
-    int flags = 0;
-    if (mainLight) flags |= 1 << 0;
-    if (otherLight) flags |= 1 << 1;
-    if (leftMotor < 0) flags |= 1 << 6;
-    if (rightMotor < 0) flags |= 1 << 7;
 
     bytes.setUint8(0, 2); // Packet type: 2 for long control packet.
     bytes.setUint8(1, flags);
@@ -182,6 +194,7 @@ class CarControlData {
           'right': rightMotor,
           'mainLight': mainLight,
           'otherLight': otherLight,
-        }
+        },
+        'silent': true,
       };
 }

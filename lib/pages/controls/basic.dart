@@ -1,95 +1,154 @@
-import 'dart:math';
-
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:yellow_toy_car/api.dart';
 import 'package:yellow_toy_car/common/car_camera.dart';
 import 'package:yellow_toy_car/common/drawer.dart';
+import 'package:yellow_toy_car/common/gamepad.dart';
+import 'package:yellow_toy_car/utils/driving/vectorized_smooth.dart';
 
-enum GamepadCrossDirection {
-  up,
-  left,
-  right,
-  down,
-  rotateLeft,
-  rotateRight,
+class BasicControls extends StatefulWidget {
+  final CarConnection connection;
+
+  const BasicControls({Key? key, required this.connection}) : super(key: key);
+
+  @override
+  State<BasicControls> createState() => _BasicControlsState();
 }
 
-typedef GamepadCrossTapCallback = void Function(
-    GamepadCrossDirection direction);
-typedef GamepadInsideBuilder = List<Widget> Function(
-    BuildContext context, double size);
+class _BasicControlsState extends State<BasicControls> {
+  final SmoothedVectorizedDrivingModel _drivingModel =
+      SmoothedVectorizedDrivingModel();
 
-class GamepadCross extends StatelessWidget {
-  final GamepadCrossTapCallback? onTapDown;
-  final GamepadCrossTapCallback? onTapUp;
-  final GamepadInsideBuilder? insideBuilder;
+  @override
+  void initState() {
+    super.initState();
+    _drivingModel.bind(widget.connection);
+  }
 
-  const GamepadCross(
-      {Key? key, this.onTapDown, this.onTapUp, this.insideBuilder})
-      : super(key: key);
+  @override
+  void dispose() {
+    _drivingModel.stop();
+    _drivingModel.dispose();
+    super.dispose();
+  }
 
-  Widget _arrow(BuildContext context, double step) {
-    return SizedBox(
-      height: 5 * step,
-      width: 3 * step,
-      child: ElevatedButton(
-        style: ElevatedButton.styleFrom(
-          shape: BeveledRectangleBorder(
-            borderRadius: BorderRadius.only(
-              bottomLeft: Radius.circular(1.5 * step),
-              bottomRight: Radius.circular(1.5 * step),
-            ),
+  bool get isDisabled => !widget.connection.isConnected;
+
+  List<Widget> _gamepadInsideBuilder(BuildContext context, double size) {
+    final step = size / 11;
+    final cornerButtonStyle = ElevatedButton.styleFrom(
+      padding: EdgeInsets.zero,
+      backgroundColor: Theme.of(context).primaryColorLight,
+    );
+    return [
+      // Rotate left
+      Positioned(
+        top: step / 2,
+        left: step / 2,
+        child: GestureDetector(
+          onTapDown: (_) => _drivingModel.rotate(-1.0),
+          onTapUp: (_) => _drivingModel.brake(),
+          child: ElevatedButton(
+            onPressed: () {},
+            style: cornerButtonStyle,
+            child: Icon(Icons.rotate_left_rounded, size: 3 * step),
           ),
-          padding: EdgeInsets.zero,
-        ),
-        onPressed: () {},
-        child: Align(
-          alignment: Alignment.topCenter,
-          child: Icon(Icons.keyboard_arrow_up_rounded, size: 3 * step),
         ),
       ),
-    );
+      // Rotate right
+      Positioned(
+        top: step / 2,
+        right: step / 2,
+        child: GestureDetector(
+          onTapDown: (_) => _drivingModel.rotate(1.0),
+          onTapUp: (_) => _drivingModel.brake(),
+          child: ElevatedButton(
+            onPressed: () {},
+            style: cornerButtonStyle,
+            child: Icon(Icons.rotate_right_rounded, size: 3 * step),
+          ),
+        ),
+      ),
+      // Stop
+      Positioned(
+        bottom: step / 2,
+        left: step / 2,
+        child: GestureDetector(
+          onTapDown: (_) => _drivingModel.stop(),
+          onTapUp: (_) => _drivingModel.stop(),
+          child: ElevatedButton(
+            onPressed: () => {},
+            style: cornerButtonStyle,
+            child: Icon(Icons.stop_rounded, size: 3 * step),
+          ),
+        ),
+      ),
+      // Action
+      Positioned(
+        bottom: step / 2,
+        right: step / 2,
+        child: ElevatedButton(
+          onPressed: () {
+            setState(() => _drivingModel.toggleMainLight());
+          },
+          style: cornerButtonStyle,
+          child: SizedBox.square(
+            dimension: 3 * step,
+            child: Padding(
+              padding: const EdgeInsets.all(8),
+              child: FittedBox(
+                fit: BoxFit.fill,
+                child: _drivingModel.mainLight
+                    ? const Icon(Icons.flashlight_off_rounded)
+                    : const Icon(Icons.flashlight_on_rounded),
+              ),
+            ),
+          ),
+        ),
+      ),
+    ];
   }
 
   @override
   Widget build(BuildContext context) {
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final size = min(constraints.maxHeight, constraints.maxWidth);
-        final step = size / 11;
-        return SizedBox.square(
-          dimension: size,
-          child: Stack(children: [
-            // Top
-            Positioned(
-              top: 0,
-              left: 4 * step,
-              child: RotatedBox(quarterTurns: 0, child: _arrow(context, step)),
-            ),
-            // Right
-            Positioned(
-              top: 4 * step,
-              left: 6 * step,
-              child: RotatedBox(quarterTurns: 1, child: _arrow(context, step)),
-            ),
-            // Bottom
-            Positioned(
-              top: 6 * step,
-              left: 4 * step,
-              child: RotatedBox(quarterTurns: 2, child: _arrow(context, step)),
-            ),
-            // Left
-            Positioned(
-              top: 4 * step,
-              left: 0,
-              child: RotatedBox(quarterTurns: 3, child: _arrow(context, step)),
-            ),
-            // Custom
-            if (insideBuilder != null) ...insideBuilder!(context, size),
-          ]),
-        );
-      },
+    return Expanded(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: GamepadCross(
+          onPressed: isDisabled ? null : (_) {},
+          onTapDown: (direction) {
+            debugPrint('onTapDown $direction');
+            switch (direction) {
+              case GamepadCrossDirection.up:
+                _drivingModel.throttle(1.0);
+                break;
+              case GamepadCrossDirection.left:
+                _drivingModel.turn(-1.0);
+                break;
+              case GamepadCrossDirection.right:
+                _drivingModel.turn(1.0);
+                break;
+              case GamepadCrossDirection.down:
+                _drivingModel.throttle(-1.0);
+                break;
+            }
+          },
+          onTapUp: (direction) {
+            debugPrint('onTapUp $direction');
+            switch (direction) {
+              case GamepadCrossDirection.up:
+              case GamepadCrossDirection.down:
+                _drivingModel.throttleIdle();
+                break;
+              case GamepadCrossDirection.left:
+              case GamepadCrossDirection.right:
+                _drivingModel.turnIdle();
+                break;
+            }
+          },
+          insideBuilder: _gamepadInsideBuilder,
+        ),
+      ),
     );
   }
 }
@@ -102,69 +161,9 @@ class BasicControlsPage extends StatefulWidget {
 }
 
 class _BasicControlsPageState extends State<BasicControlsPage> {
-  List<Widget> _gamepadInsideBuilder(BuildContext context, double size) {
-    final step = size / 11;
-    final cornerButtonStyle = ElevatedButton.styleFrom(
-      padding: EdgeInsets.zero,
-      backgroundColor: Theme.of(context).primaryColorLight,
-    );
-    return [
-      // Rotate left
-      Positioned(
-        top: step / 2,
-        left: step / 2,
-        child: ElevatedButton(
-          onPressed: () {},
-          style: cornerButtonStyle,
-          child: Icon(Icons.rotate_left_rounded, size: 3 * step),
-        ),
-      ),
-      // Rotate right
-      Positioned(
-        top: step / 2,
-        right: step / 2,
-        child: ElevatedButton(
-          onPressed: () {},
-          style: cornerButtonStyle,
-          child: Icon(Icons.rotate_right_rounded, size: 3 * step),
-        ),
-      ),
-      // Stop
-      Positioned(
-        bottom: step / 2,
-        left: step / 2,
-        child: ElevatedButton(
-          onPressed: () {},
-          style: cornerButtonStyle,
-          child: Icon(Icons.stop_rounded, size: 3 * step),
-        ),
-      ),
-      // Action
-      Positioned(
-        bottom: step / 2,
-        right: step / 2,
-        child: ElevatedButton(
-          onPressed: () {},
-          style: cornerButtonStyle,
-          child: SizedBox.square(
-            dimension: 3 * step,
-            child: Padding(
-              padding: const EdgeInsets.all(8),
-              child: FittedBox(
-                fit: BoxFit.fill,
-                child: Icon(Icons.flashlight_on_rounded),
-              ),
-            ),
-          ),
-        ),
-      ),
-    ];
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      key: const ValueKey('mainScaffold'),
       drawer: const MyDrawer(),
       appBar: AppBar(
         title: const Text('Basic controls'),
@@ -178,16 +177,7 @@ class _BasicControlsPageState extends State<BasicControlsPage> {
         return Column(
           children: [
             CarCameraView(uri: connection.cameraStreamUri),
-            Expanded(
-              child: Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: GamepadCross(
-                  onTapDown: (direction) {},
-                  onTapUp: (direction) {},
-                  insideBuilder: _gamepadInsideBuilder,
-                ),
-              ),
-            ),
+            BasicControls(connection: connection),
           ],
         );
       }),

@@ -3,6 +3,7 @@
 		"esports",
 		"RSSI",
 		"SNTP",
+		"sprintf",
 		"videogame"
 	]
 }

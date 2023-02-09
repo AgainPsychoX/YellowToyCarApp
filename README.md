@@ -11,6 +11,7 @@ See [YellowToyCar](https://github.com/AgainPsychoX/YellowToyCar) repository for 
 
 ## To-do
 
+* Send stop packets continuously when pressing stop button (for safety).
 * Make drawer navigation nicer https://github.com/flutter/flutter/issues/26954
 * Listen to connectivity changes https://stackoverflow.com/questions/25678216/android-internet-connectivity-change-listener 
 * Work to be done on [`network_info_plus` package](https://pub.dev/packages/network_info_plus)
