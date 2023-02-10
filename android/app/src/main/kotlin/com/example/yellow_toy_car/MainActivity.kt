@@ -1,4 +1,4 @@
-package com.example.yellow_toy_car
+package com.github.againpsychox.yellowtoycarapp
 
 import io.flutter.embedding.android.FlutterActivity
 
