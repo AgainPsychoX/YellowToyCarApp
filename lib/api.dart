@@ -181,9 +181,9 @@ class CarControlData {
 
     bytes.setUint8(0, 2); // Packet type: 2 for long control packet.
     bytes.setUint8(1, flags);
-    bytes.setUint16(2, 0); // Not used currently, need to be 0.
-    bytes.setFloat32(4, leftMotor * 100);
-    bytes.setFloat32(8, rightMotor * 100);
+    bytes.setUint16(2, 0, Endian.little); // Not used currently, need to be 0.
+    bytes.setFloat32(4, leftMotor * 100, Endian.little);
+    bytes.setFloat32(8, rightMotor * 100, Endian.little);
 
     return bytes;
   }
