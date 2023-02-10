@@ -1,6 +1,13 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.example.yellow_toy_car">
+
     <uses-permission android:name="android.permission.INTERNET" />
+
+    <!-- Required for sensors (gyroscope) -->
+    <uses-permission android:name="android.permission.BLUETOOTH"/> 
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" android:maxSdkVersion="32" />
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+
     <application
         android:label="yellow_toy_car"
         android:name="${applicationName}"

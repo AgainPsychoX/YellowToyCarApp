@@ -8,6 +8,7 @@ import 'package:yellow_toy_car/pages/about.dart';
 import 'package:yellow_toy_car/pages/connection.dart';
 import 'package:yellow_toy_car/pages/controls/analog.dart';
 import 'package:yellow_toy_car/pages/controls/basic.dart';
+import 'package:yellow_toy_car/pages/controls/sensors.dart';
 
 void main() {
   Logger.root.level = kDebugMode ? Level.ALL : Level.INFO;
@@ -29,6 +30,7 @@ final routes = <String, Widget Function(BuildContext context)>{
   '/connection': (context) => const ConnectionPage(),
   '/controls/basic': (context) => const BasicControlsPage(),
   '/controls/analog': (context) => const AnalogControlsPage(),
+  '/controls/sensors': (context) => const SensorsControlsPage(),
 };
 
 class MyApp extends StatelessWidget {

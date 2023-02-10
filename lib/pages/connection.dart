@@ -169,7 +169,7 @@ class _ConnectionPageState extends State<ConnectionPage>
                 ),
                 ElevatedButton(
                   onPressed: () =>
-                      Navigator.pushNamed(context, '/controls/gyro'),
+                      Navigator.pushNamed(context, '/controls/sensors'),
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: const [
@@ -177,7 +177,7 @@ class _ConnectionPageState extends State<ConnectionPage>
                         padding: EdgeInsets.all(4),
                         child: Icon(Icons.screen_rotation_rounded, size: 32),
                       ),
-                      Text('Gyroscope controls'),
+                      Text('Sensors controls'),
                     ],
                   ),
                 ),
